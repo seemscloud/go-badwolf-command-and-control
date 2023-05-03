@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"seems.cloud/badwolf/server/cmd/protocol"
 	"seems.cloud/badwolf/server/internal/configs"
 	"strconv"
 )
@@ -45,13 +46,22 @@ func handleConnection(conn net.Conn) {
 
 	fmt.Println("New client connected:", conn.RemoteAddr())
 
-	buffer := make([]byte, 256)
+	buffer := make([]byte, 8)
 	for {
-		data, err := conn.Read(buffer)
-		println("dsa\n", data)
+		_, err := conn.Read(buffer)
 		if err != nil {
 			fmt.Println("Error reading from client: ", err.Error())
-			break
 		}
+
+		messageHandler(buffer[:3])
+	}
+}
+
+func messageHandler(bytes []byte) {
+	switch string(bytes) {
+	case protocol.PingPongType:
+		fmt.Printf("Received Ping Message\n")
+	default:
+		fmt.Printf("Unknown message\n")
 	}
 }

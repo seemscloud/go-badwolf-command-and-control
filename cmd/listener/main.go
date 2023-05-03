@@ -2,6 +2,7 @@ package listener
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"seems.cloud/badwolf/server/cmd/protocol"
@@ -40,20 +41,27 @@ func handleConnection(conn net.Conn) {
 	defer func(conn net.Conn) {
 		err := conn.Close()
 		if err != nil {
-
+			fmt.Printf("Error closing connection: %s\n", err.Error())
 		}
 	}(conn)
 
 	fmt.Println("New client connected:", conn.RemoteAddr())
 
-	buffer := make([]byte, 8)
+	buffer := make([]byte, 256)
 	for {
-		_, err := conn.Read(buffer)
+		n, err := conn.Read(buffer)
 		if err != nil {
-			fmt.Println("Error reading from client: ", err.Error())
+			if err == io.EOF {
+				fmt.Println("Client disconnected")
+				return
+			} else {
+				fmt.Printf("Error when reading from client: %s\n", err)
+			}
 		}
 
-		messageHandler(buffer[:3])
+		if n > 0 {
+			messageHandler(buffer[:3])
+		}
 	}
 }
 

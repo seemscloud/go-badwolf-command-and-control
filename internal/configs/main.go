@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"gopkg.in/yaml.v3"
 	"os"
+	"path/filepath"
 )
 
 type Config struct {
@@ -16,12 +17,14 @@ type Config struct {
 }
 
 func LoadConfig() (*Config, error) {
-	cwd, err := os.Getwd()
+	cwd, err := os.Executable()
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get current working directory: %v\n", err)
 	}
 
-	config, err := parseConfig(cwd + "/configs/" + "config.yaml")
+	execPwd := filepath.Dir(cwd)
+
+	config, err := parseConfig(execPwd + "/configs/config.yaml")
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse config file: %v", err)
 	}

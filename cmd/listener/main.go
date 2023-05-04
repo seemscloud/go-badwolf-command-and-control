@@ -1,14 +1,39 @@
 package listener
 
 import (
+	"crypto/tls"
 	"fmt"
 	"io"
 	"log"
 	"net"
+	"os"
+	"path/filepath"
 	"seems.cloud/badwolf/server/cmd/protocol"
 	"seems.cloud/badwolf/server/internal/configs"
 	"strconv"
 )
+
+const typeChunkSize = 8
+
+func getTLSConfig() (*tls.Config, error) {
+	cwd, err := os.Executable()
+	if err != nil {
+		return nil, fmt.Errorf("Failed to get current working directory: %v\n", err)
+	}
+
+	execPwd := filepath.Dir(cwd)
+
+	cert, err := tls.LoadX509KeyPair(execPwd+"/configs/ca.crt.pem", execPwd+"/configs/ca.key.pem")
+	if err != nil {
+		return nil, fmt.Errorf("Failed to load certificate %v\n", err)
+	}
+
+	config := tls.Config{
+		Certificates: []tls.Certificate{cert},
+	}
+
+	return &config, nil
+}
 
 func Listen() {
 	config, err := configs.LoadConfig()
@@ -16,7 +41,12 @@ func Listen() {
 		log.Fatalf("Failed LoadConfig: %v", err)
 	}
 
-	listener, err := net.Listen("tcp", ":"+strconv.Itoa(config.Port))
+	certConfig, err := getTLSConfig()
+	if err != nil {
+		log.Fatalf("Failed to load certificate %v\n", err)
+	}
+
+	listener, err := tls.Listen("tcp", ":"+strconv.Itoa(config.Port), certConfig)
 	if err != nil {
 		log.Fatalf("Error listening: %v", err.Error())
 	}
@@ -47,7 +77,7 @@ func handleConnection(conn net.Conn) {
 
 	fmt.Println("New client connected:", conn.RemoteAddr())
 
-	buffer := make([]byte, 256)
+	buffer := make([]byte, typeChunkSize)
 	for {
 		n, err := conn.Read(buffer)
 		if err != nil {
@@ -60,15 +90,17 @@ func handleConnection(conn net.Conn) {
 		}
 
 		if n > 0 {
-			messageHandler(buffer[:3])
+			messageHandler(buffer[:8], &conn)
 		}
 	}
 }
 
-func messageHandler(bytes []byte) {
+func messageHandler(bytes []byte, conn *net.Conn) {
 	switch string(bytes) {
 	case protocol.PingPongType:
-		fmt.Printf("Received Ping Message\n")
+		for i := 1; i <= 256; i++ {
+			fmt.Println(i)
+		}
 	default:
 		fmt.Printf("Unknown message\n")
 	}

@@ -8,7 +8,7 @@ import (
 	"syscall"
 )
 
-func protoDataReceive(conn *net.Conn, buffer *[]byte) (int, error) {
+func dataReceive(conn *net.Conn, buffer *[]byte) (int, error) {
 	n, err := (*conn).Read(*buffer)
 	if err != nil {
 		if err == io.EOF {
@@ -21,7 +21,7 @@ func protoDataReceive(conn *net.Conn, buffer *[]byte) (int, error) {
 	return n, nil
 }
 
-func protoDataSend(conn *net.Conn, data []byte) {
+func dataSend(conn *net.Conn, data []byte) {
 	_, err := (*conn).Write(data)
 	if err != nil {
 		fmt.Println("Error writing to server:", err)
@@ -34,6 +34,6 @@ func protoDataSend(conn *net.Conn, data []byte) {
 			fmt.Println("Other error")
 			return
 		}
-		*conn = handleClientConn()
+		*conn = connectToServer()
 	}
 }

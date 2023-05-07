@@ -3,28 +3,26 @@ package protocol
 import (
 	"fmt"
 	"net"
-	"seems.cloud/badwolf/server/cmd/helpers"
 	"seems.cloud/badwolf/server/cmd/protocol/definitions"
 )
 
-func protoDataBuilder(data []byte) []byte {
+func dataBuilder(dataType string, data []byte) []byte {
 	var message definitions.ProtoDataTransfer
 
-	copy(message.Type[:], definitions.ProtoDataTransferType)
-	copy(message.Checksum[:], helpers.Sha512Checksum(data))
+	copy(message.Type[:], dataType)
 	copy(message.Payload[:], data)
 
-	return protoDataBytes(message)
+	return dataBytes(message)
 }
 
-func protoDataBytes(p definitions.ProtoDataTransfer) []byte {
+func dataBytes(p definitions.ProtoDataTransfer) []byte {
 	var buf []byte
 	buf = append(buf, p.Type[:]...)
 	buf = append(buf, p.Payload[:]...)
 	return buf
 }
 
-func protoDataHandler(bytes []byte, conn *net.Conn) {
+func dataHandler(bytes []byte, conn *net.Conn) {
 	switch string(bytes) {
 	case definitions.ProtoDataTransferType:
 		fmt.Printf("Data Transfer\n")

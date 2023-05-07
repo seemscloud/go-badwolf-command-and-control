@@ -8,10 +8,11 @@ import (
 )
 
 const typeChunkSize = 128
+
 const serverAddr = ":11112"
 const retryPeriod = 1 * time.Second
 
-func handleClientConn() net.Conn {
+func connectToServer() net.Conn {
 	for {
 		conn, err := tls.Dial("tcp", serverAddr, tlsNonCertConfig())
 		if err != nil {
@@ -23,7 +24,7 @@ func handleClientConn() net.Conn {
 	}
 }
 
-func handleServerConnection(conn net.Conn) {
+func handleConnection(conn net.Conn) {
 	defer func(conn net.Conn) {
 		err := conn.Close()
 		if err != nil {
@@ -33,13 +34,14 @@ func handleServerConnection(conn net.Conn) {
 
 	buffer := make([]byte, typeChunkSize)
 	for {
-		n, err := protoDataReceive(&conn, &buffer)
+		n, err := dataReceive(&conn, &buffer)
 
 		if err != nil {
 			fmt.Printf("Failed to receive data %v\n", err)
+			break
 		} else {
 			if n > 0 {
-				protoDataHandler(buffer[:8], &conn)
+				dataHandler(buffer[:8], &conn)
 			}
 		}
 	}

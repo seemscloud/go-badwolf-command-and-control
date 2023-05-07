@@ -1,3 +1,3 @@
 package definitions
 
-var ProtoLinuxToExecChannel = make(chan string)
+var ProtoDataTransferChannel = make(chan ProtoDataTransfer)

@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func ServerHandler() {
+func Server() {
 	config, err := configs.LoadConfig()
 	if err != nil {
 		log.Fatalf("Failed LoadConfig: %v", err)
@@ -38,15 +38,14 @@ func ServerHandler() {
 			fmt.Println("Error accepting:", err.Error())
 			continue
 		}
-		go handleServerConnection(conn)
+		go handleConnection(conn)
 	}
 }
 
-func ClientHandler() {
-	conn := handleClientConn()
+func Client() {
+	conn := connectToServer()
 	for {
-		messageBytes := protoDataBuilder([]byte("asdf"))
-		protoDataSend(&conn, messageBytes)
+		go handleConnection(conn)
 
 		time.Sleep(time.Second)
 	}

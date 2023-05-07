@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-func HttpServer() {
+func Server() {
 	config, err := configs.LoadConfig()
 	if err != nil {
 		log.Fatalf("Failed LoadConfig: %v", err)
